@@ -9,7 +9,24 @@ const connectDB = require('./config/database') ;
 // require user model
 const User = require('../models/user') ;
 
-// handling route for signUp
+// GET user by email
+app.get("/user",async (req,res)=> {
+  const userEmail = req.body.emailID ;
+  try {
+    const users = await User.find({ "emailID" : userEmail }) ;
+    if(user.length!==0){
+      res.send(users) ;
+    }
+    else{
+      res.send("user is not found with entered emailID!!") ;
+    }
+  } catch (error) {
+    res.status(400).send('something went wrong!!') ;
+  }
+  
+})
+
+// signup API - POST/signup
 app.post("/signup",async (req,res)=>{
 
   console.log(req.body) ;
@@ -25,10 +42,20 @@ app.post("/signup",async (req,res)=>{
   }catch(err){
     res.status(400).send("Error while saving the user..") ;
   }
-    
-
 }
 )
+
+// feed API = GET/feed  for getting all the users from databse
+app.get("/feed",async (req,res)=>{
+  
+  try {
+    const users = await User.find()
+    res.send(users) ;
+    
+  } catch (error) {
+    res.status(400).send("Something went Wrong..") ;
+  }
+})
 
 connectDB()
   .then(()=>{
