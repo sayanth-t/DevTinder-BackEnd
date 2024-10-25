@@ -42,7 +42,7 @@ app.post("/signup",async (req,res)=>{
     await user.save() ;
     res.send("data is stored inside database") ;
   }catch(err){
-    res.status(400).send("Error while saving the user..") ;
+    res.status(400).send(err.message) ;
   }
 }
 )
@@ -78,11 +78,12 @@ app.patch("/user",async (req,res)=>{
   const data = req.body ;
 
   try {
-    const userAfter = await User.findByIdAndUpdate(data.userId,data.dataUpdates,{returnDocument:'after'}) ;
+    const userAfter = await User.findByIdAndUpdate(data.userId,data.dataUpdates, {returnDocument:'after',runValidators:true}) ;
+
     console.log(userAfter) ;
     res.status(200).send("user is updated successfully.") ;
   } catch (err) {
-    res.status(500).send('Something went wrong..!!') ;
+    res.status(500).send(`updating the documnet is fail !!` ) ;
   }
 })
 
