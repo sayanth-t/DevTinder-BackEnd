@@ -1,21 +1,34 @@
 const mongoose = require('mongoose') ;
 
+// importing validator
+var validator = require('validator');
+
 const userSchema = mongoose.Schema({
   firstName : {
     type : String ,
     required : true ,
-    minLength: 4
+    minLength: 4 ,
+    trim : true
   },
   lastName : {
     type : String,
-    required : true 
+    required : true ,
+    minLength : 1
   },
   emailID : {
     type : String,
     required : true,
     lowercase: true ,
     trim : true ,
-    unique: true
+    unique: true ,
+    validate : {
+      validator : function(value) {
+        if(!validator.isEmail(value)){
+          throw new Error("Email is not valid") ;
+        }
+      }
+    }
+    
   },
   age : {
     type : Number ,
@@ -33,10 +46,6 @@ const userSchema = mongoose.Schema({
   },
   skills : {
     type : [String] 
-  },
-  createdAt:{
-    type : Date ,
-    default : Date.now 
   }
 },{ timestamps: true })
 

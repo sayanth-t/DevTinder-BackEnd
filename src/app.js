@@ -76,15 +76,33 @@ app.delete("/user",async (req,res)=>{
 // update the user
 app.patch("/user",async (req,res)=>{
   const data = req.body ;
+  const dataUpdates = req.body.dataUpdates ;
 
   try {
+
+    // for prevent update of certain fields
+    const allowed_updates = ["firstName","lastName","age","gender","skills"] ;
+    const isupdateAllowed = Object.keys(dataUpdates).every((key)=> allowed_updates.includes(key) ) 
+
+    
+    if(!isupdateAllowed) {
+      throw new Error("the field cant update!") ;
+    }
+
+    // checking the number of skills
+    if(dataUpdates.skills.length > 4){
+      throw new Error("only 4 skills are allowed ") ;
+    }
+
+    // updating user by ID 
     const userAfter = await User.findByIdAndUpdate(data.userId,data.dataUpdates, {returnDocument:'after',runValidators:true}) ;
 
     console.log(userAfter) ;
     res.status(200).send("user is updated successfully.") ;
   } catch (err) {
-    res.status(500).send(`updating the documnet is fail !!` ) ;
+    res.status(500).send(`updating the documnet is fail !!`+ err.message ) ;
   }
+    
 })
 
 
