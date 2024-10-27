@@ -46,6 +46,12 @@ const userSchema = mongoose.Schema({
   },
   skills : {
     type : [String] 
+  },
+  password : {
+    type : String
+  }
+  ,confirmPassword : {
+    type : String
   }
 },{ timestamps: true })
 
