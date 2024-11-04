@@ -1,6 +1,15 @@
 const express = require('express') ;
 const app = express() ;
 
+// import auth middleware
+const {userAuth} = require('./middlewares/auth')
+
+// import jsonwebtoken
+const jwt = require('jsonwebtoken') ;
+
+// import cookie-parser
+const cookieParser = require('cookie-parser')
+
 // import bcrypt
 const bcrypt = require('bcrypt') ;
 
@@ -13,27 +22,11 @@ app.use(express.json()) ;
 const connectDB = require('./config/database') ;
 
 // require user model
-const User = require('../models/user') ;
+const User = require('./models/user') ;
 
-// GET user by email
-app.get("/user",async (req,res)=> {
-  const userEmail = req.body.emailID ;
+// put cookie-parser on every request
+app.use(cookieParser())
 
-  console.log(userEmail) ;
-
-  try {
-    const user = await User.find({ emailID : userEmail }) ;
-    if(user.lenght!==0){
-      res.status(200).send(user) ;
-    }
-    else{
-      res.status(404).send("user is not found with entered emailID!!") ;
-    }
-  } catch (error) {
-    res.status(500).send('something went wrong!!') ;
-  }
-  
-})
 
 // signup API - POST/signup
 app.post("/signup",async (req,res)=>{
@@ -78,6 +71,8 @@ app.post("/login",async (req,res)=>{
     // check the user with entered emailID
     const user = await User.findOne({firstName,lastName,emailID}) ;
 
+    console.log(user) ;
+
     if(!user){
       throw new Error("invalid credentilas") ;
     }
@@ -85,7 +80,17 @@ app.post("/login",async (req,res)=>{
     // To check a password
     const isPasswordValid = await bcrypt.compare(password,user.password) ;
     if(isPasswordValid) {
+
+      // Creating and signing a JWT
+      const token = jwt.sign({ _id : user._id },'DeV@ti8*9rR',{expiresIn:60})
+      
+      console.log(token) ;
+
+      // sending token to the user as cookie
+      res.cookie("token",token) ;
+
       res.send("Login Successfully") ;
+    
     }
     else{
       throw new Error ("invalid credentilas") ;
@@ -106,6 +111,18 @@ app.get("/feed",async (req,res)=>{
   } catch (error) {
     res.status(400).send("Something went Wrong..") ;
   }
+})
+
+// profile API - GET/profile for getting user profile
+app.get("/profile",userAuth,async (req,res)=>{
+
+  try {
+    const {user} = req ;
+    res.send(user) ;
+  } catch (err) {
+    res.status(400).send("Error! "+err.message) ;
+  }
+  
 })
 
 // delete API - DELETE/user
@@ -129,8 +146,10 @@ app.patch("/user",async (req,res)=>{
 
   try {
 
+    console.log(dataUpdates) ;
+
     // for prevent update of certain fields
-    const allowed_updates = ["firstName","lastName","age","gender","skills"] ;
+    const allowed_updates = ["firstName","lastName","age","gender","skills","password"] ;
     const isupdateAllowed = Object.keys(dataUpdates).every((key)=> allowed_updates.includes(key) ) 
 
     
@@ -139,7 +158,7 @@ app.patch("/user",async (req,res)=>{
     }
 
     // checking the number of skills
-    if(dataUpdates.skills.length > 4){
+    if(dataUpdates.skills && dataUpdates.skills.length > 4){
       throw new Error("only 4 skills are allowed ") ;
     }
 
