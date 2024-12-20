@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 // Import User collection
 const User = require('../models/user');
 
+
 const userAuth = async (req, res, next) => {
   try {
     // Read the token from req.cookies

@@ -30,4 +30,16 @@ const signupDataValidate = (req) =>{
   }
 }
 
-module.exports = signupDataValidate ;
+const validateProfileEditData = (req) => {
+
+  // for prevent update of certain fields
+  const allowed_updates = ["firstName","lastName","age","gender","skills","password"] ;
+  const isupdateAllowed = Object.keys(req.body).every((key)=> allowed_updates.includes(key) ) ;
+
+  if(!isupdateAllowed) {
+    throw new Error("the field cant update!") ;
+  }
+
+}
+
+module.exports = { signupDataValidate ,validateProfileEditData } ;

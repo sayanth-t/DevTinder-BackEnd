@@ -21,6 +21,7 @@ const userSchema = mongoose.Schema({
     lowercase: true ,
     trim : true ,
     unique: true ,
+    index : true ,
     validate : {
       validator : function(value) {
         if(!validator.isEmail(value)){
@@ -38,10 +39,10 @@ const userSchema = mongoose.Schema({
   },
   gender:{
     type : String , 
-    validate(value){
-      if(!["male","female","others"].includes(value)){
-        throw new error('Gender is not valid') ;
-      }
+    // use enum for specify accepted values for gender
+    enum : {
+      values : ["male","female","other"] ,
+      message : `{VALUE} is incorrect status type`
     }
   },
   skills : {
@@ -55,10 +56,13 @@ const userSchema = mongoose.Schema({
   }
 },{ timestamps: true })
 
+
+
 // creating a user model
 const User = mongoose.model("User",userSchema) ;
 
 // for creating indexes
 User.init();
 
-module.exports = User;
+
+module.exports =  User  ;
