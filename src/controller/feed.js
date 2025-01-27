@@ -5,6 +5,12 @@ const User = require('../models/user') ;
 const getFeed = async (req,res)=>{
   
   try {
+
+    const page = parseInt(req.query.page) ;
+    const limit = parseInt(req.query.limit) ;
+
+    const skipNumber = page > 0 ? ( page - 1 ) * limit : 0 ;
+    const limitNumber = limit ? limit : 2 ;
     
     const loggedUser = req.user ;
 
@@ -17,7 +23,7 @@ const getFeed = async (req,res)=>{
                                               ]
                                             })
                                             .select(['fromUserId' , 'toUserId'])
-                                           
+                                            
 
     const hideUsersFromFeed = new Set() ;
     connections.forEach( req => {
@@ -25,16 +31,21 @@ const getFeed = async (req,res)=>{
       hideUsersFromFeed.add(req.toUserId.toString()) ;
     })
 
-    
+    if(!hideUsersFromFeed.has(loggedUser._id)){
+      hideUsersFromFeed.add(loggedUser._id.toString()) ;
+    }
 
-    const feedUsers = await User.find({
-      _id : { $nin : Array.from(hideUsersFromFeed) }
-    })
-
-    console.log('feed users : ',feedUsers) ;
+    const feedUsers = await User
+                              .find({
+                                _id : { $nin : Array.from(hideUsersFromFeed) }
+                              })
+                              .select("firstName lastName age gender")
+                              .skip(skipNumber)
+                              .limit(limitNumber)
+                                           
 
     res.json({
-      hideUsersFromFeed
+      feedUsers
     })
     
   } catch (error) {
