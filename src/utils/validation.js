@@ -2,7 +2,7 @@
 const validator = require('validator') ;
 
 const signupDataValidate = (req) =>{
-  const {firstName,lastName,emailID,age,password,confirmPassword} = req.body ;
+  const {firstName,lastName,emailID,age} = req.body ;
 
   // checking the firstName is empty or not
   if(validator.isEmpty(firstName)){
@@ -19,21 +19,12 @@ const signupDataValidate = (req) =>{
     throw new Error("Email is not valid ! ") ;
   }
 
-  // checking the password is strong or not
-  if(!validator.isStrongPassword(password)){
-    throw new Error("Create a strong Password !") ;
-  }
-
-  // checking the password and confirm password are equal
-  if(!password===confirmPassword){
-    throw new Error("password are different")
-  }
 }
 
 const validateProfileEditData = (req) => {
 
   // for prevent update of certain fields
-  const allowed_updates = ["firstName","lastName","age","gender","skills","password"] ;
+  const allowed_updates = ["firstName","lastName","age","gender","skills","about","avatarURL"] ;
   const isupdateAllowed = Object.keys(req.body).every((key)=> allowed_updates.includes(key) ) ;
 
   if(!isupdateAllowed) {
@@ -42,4 +33,11 @@ const validateProfileEditData = (req) => {
 
 }
 
-module.exports = { signupDataValidate ,validateProfileEditData } ;
+const passwordValidate = (req) => {
+  const {password} = req.body ;
+  if(!validator.isStrongPassword(password)){
+    throw new Error("Enter a Strong Password!") ;
+  }
+}
+
+module.exports = { signupDataValidate ,validateProfileEditData , passwordValidate } ;

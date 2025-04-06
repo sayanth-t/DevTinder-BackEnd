@@ -3,7 +3,7 @@ const userRouter = express.Router() ;
 
 const {userAuth} = require('../middlewares/auth')
 
-const userController = require('../controller/userController') ;
+const userController = require('../controller/user') ;
 
 // get pending connection request for loggedInUser
 userRouter.get('/user/request/recieved' , userAuth , userController.getRequests ) ;

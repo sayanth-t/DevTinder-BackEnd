@@ -3,8 +3,6 @@ const profileRouter = express.Router() ;
 
 const profileController = require('../controller/profile') ;
 
-
-
 // import auth middleware
 const {userAuth} = require('../middlewares/auth');
 
@@ -16,6 +14,9 @@ profileRouter.get("/profile/view",userAuth, profileController.getProfile ) ;
 profileRouter.delete("/profile/delete", userAuth , profileController.deleteProfile ) ;
 
 // update the user
-profileRouter.patch("/profile/edit",userAuth, profileController.editProfile ) ;
+profileRouter.post("/profile/edit" , userAuth ,  profileController.editProfile ) ;
+
+// update profile pic
+profileRouter.post('/profile/avatar/edit',userAuth, profileController.editProfileAvatar ) ;
 
 module.exports = profileRouter ;

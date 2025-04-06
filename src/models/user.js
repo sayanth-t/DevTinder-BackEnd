@@ -2,6 +2,7 @@ const mongoose = require('mongoose') ;
 
 // importing validator
 var validator = require('validator');
+const crypto = require("crypto");
 
 const userSchema = mongoose.Schema({
   firstName : {
@@ -12,14 +13,11 @@ const userSchema = mongoose.Schema({
   },
   lastName : {
     type : String,
-    required : true ,
     minLength : 1
   },
   emailID : {
     type : String,
-    required : true,
-    lowercase: true ,
-    trim : true ,
+    required : true ,
     unique: true ,
     index : true ,
     validate : {
@@ -50,13 +48,34 @@ const userSchema = mongoose.Schema({
   },
   password : {
     type : String
-  }
-  ,confirmPassword : {
-    type : String
+  } ,
+  about : {
+    type : String , 
+    required : false
+  },
+  connections : {
+    type : Number , 
+    default : 0
+  } ,
+  avatarURL : {
+    type : String ,
+    default : "https://res.cloudinary.com/dl8q6vzmq/image/upload/v1742800503/j8iajgjrnyzzqcjt2wwd.jpg"
+  },
+  otp:{
+    type : String,
+    
+  },
+  optExpires : {
+    type : Date
   }
 },{ timestamps: true })
 
-
+userSchema.methods.generateOtp = function() {
+  const otp = crypto.randomInt(100000, 999999).toString() ;
+  this.otp = crypto.createHash("sha256").update(otp).digest("hex");
+  this.optExpires = Date.now() + 5 * 60 *  1000 ;
+  return otp
+}
 
 // creating a user model
 const User = mongoose.model("User",userSchema) ;

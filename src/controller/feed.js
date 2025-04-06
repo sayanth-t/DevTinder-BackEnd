@@ -6,12 +6,12 @@ const getFeed = async (req,res)=>{
   
   try {
 
-    const page = parseInt(req.query.page) ;
-    const limit = parseInt(req.query.limit) ;
+    const page = parseInt(req.query.page)
+    const limit = parseInt(req.query.limit)
 
     const skipNumber = page > 0 ? ( page - 1 ) * limit : 0 ;
-    const limitNumber = limit ? limit : 2 ;
-    
+    const limitNumber = limit ? limit : 10 ;
+
     const loggedUser = req.user ;
 
     // find all connection requestes [ either sent or recieved ] 
@@ -39,7 +39,7 @@ const getFeed = async (req,res)=>{
                               .find({
                                 _id : { $nin : Array.from(hideUsersFromFeed) }
                               })
-                              .select("firstName lastName age gender")
+                              .select("firstName lastName age gender avatarURL about")
                               .skip(skipNumber)
                               .limit(limitNumber)
                                            

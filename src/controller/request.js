@@ -1,10 +1,8 @@
 const {ConnectionRequest} = require('../models/connectionRequest') ;
-
 const User = require('../models/user');
-
 const mongoose = require('mongoose');
-
-
+const { io , getRecieverSocketId } = require('../config/socket')
+ 
 // send connection request
 const requestSend = async (req,res) => {
   try {
@@ -13,7 +11,6 @@ const requestSend = async (req,res) => {
     const fromUserId = req.user._id ;
     // toUserId we can get from req.params
     const toUserId = req.params.toUserId ;
-
 
     // Validate toUserId is a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(toUserId)) {
@@ -48,7 +45,7 @@ const requestSend = async (req,res) => {
       return res.send('connection request already send..!') ;
     }
 
-    // creating document
+    // creating connection
     const ConnectionData = new ConnectionRequest({
       fromUserId ,
       toUserId ,
@@ -57,9 +54,14 @@ const requestSend = async (req,res) => {
 
     await ConnectionData.save() ;
 
-    console.log(ConnectionData) ;
+    const recieverSocketId = getRecieverSocketId(toUser._id) ;
+    if(recieverSocketId){
+      io.to(recieverSocketId).emit( "conectionRequest" , ConnectionData ) ;
+    }
 
-    res.send("connection request send successfully") 
+    console.log('reciever socket id : ', recieverSocketId )
+
+    res.status(200).send("connection request send successfully") 
 
   } catch (err) {
     res
@@ -72,9 +74,8 @@ const requestSend = async (req,res) => {
 // review connection request
 const requestReview = async (req,res) => {
   try {
-    
+
     const loggedInUserId = req.user._id.toString() ;
-    console.log(loggedInUserId) ;
 
     const { status , requestId } = req.params ;
 
@@ -95,7 +96,6 @@ const requestReview = async (req,res) => {
       status : "interested"
     }) ;
 
-    console.log(request) ;
 
     if(!request) {
       return res
@@ -108,10 +108,7 @@ const requestReview = async (req,res) => {
     // change the status value to accepted or rejected basis on the request
     request.status = status ;
 
-    const updatedData = await request.save() ;
-
-    console.log('updated Data :',updatedData) ;
-
+    await request.save() ;
     res.json({
       message : "request was" + status 
     })
@@ -124,6 +121,26 @@ const requestReview = async (req,res) => {
   }
 }
 
+// remove user from connection list
+const ignoreConection = async (req,res) => {
+  try {
+    const loggedInUser = req.user ;
+    const {toUserId} = req.params ;
+    
+    const connections = await ConnectionRequest.updateOne({ $or : [{ fromUserId : loggedInUser._id , toUserId : toUserId , status : "accepted" } , 
+      { fromUserId : toUserId , toUserId : loggedInUser._id ,status : "accepted" }
+    ]},{ $set : { status : "ignored"}  })
+
+    res.status(200).json({
+      message : "user removed from connection " ,
+      connections
+    })
+  } catch (err) {
+    console.log(err.message)
+  }
+}
+
 module.exports = { requestSend ,
-                   requestReview             
+                   requestReview ,
+                   ignoreConection         
                 }
